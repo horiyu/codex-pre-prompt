@@ -37,7 +37,7 @@ const TerminalHeader: React.FC<TerminalHeaderProps> = ({
         <>
           <Box borderStyle="round" paddingX={1} width={64}>
             <Text>
-              ● OpenAI <Text bold>Codex</Text>{" "}
+              ● OpenAI <Text bold>Codex + PrePrompt</Text>{" "}
               <Text dimColor>
                 (research preview) <Text color="blueBright">v{version}</Text>
               </Text>
