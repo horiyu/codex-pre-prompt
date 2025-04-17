@@ -145,6 +145,16 @@ const cli = meow(
         description: `Run in full-context editing approach. The model is given the whole code
           directory as context and performs changes in one go without acting.`,
       },
+
+      // For pre prompting
+      prePrompt: {
+        type: "string",
+        description: "Add a predefined prompt text before the user input",
+      },
+      prePromptFile: {
+        type: "string",
+        description: "Path to a file containing text to add before the user input",
+      },
     },
   },
 );
@@ -210,11 +220,11 @@ if (!apiKey) {
   // eslint-disable-next-line no-console
   console.error(
     `\n${chalk.red("Missing OpenAI API key.")}\n\n` +
-      `Set the environment variable ${chalk.bold("OPENAI_API_KEY")} ` +
-      `and re-run this command.\n` +
-      `You can create a key here: ${chalk.bold(
-        chalk.underline("https://platform.openai.com/account/api-keys"),
-      )}\n`,
+    `Set the environment variable ${chalk.bold("OPENAI_API_KEY")} ` +
+    `and re-run this command.\n` +
+    `You can create a key here: ${chalk.bold(
+      chalk.underline("https://platform.openai.com/account/api-keys"),
+    )}\n`,
   );
   process.exit(1);
 }
@@ -241,9 +251,9 @@ if (!(await isModelSupportedForResponses(config.model))) {
   // eslint-disable-next-line no-console
   console.error(
     `The model "${config.model}" does not appear in the list of models ` +
-      `available to your account. Double‑check the spelling (use\n` +
-      `  openai models list\n` +
-      `to see the full list) or choose another model with the --model flag.`,
+    `available to your account. Double‑check the spelling (use\n` +
+    `  openai models list\n` +
+    `to see the full list) or choose another model with the --model flag.`,
   );
   process.exit(1);
 }
@@ -265,10 +275,42 @@ if (cli.flags.view) {
   }
 }
 
+// 事前プロンプトの定義
+const prePromptStr = `プログラムを作成する際は日本語のコメントを必ず入れてください．`;
+
+// ユーザープロンプトと事前プロンプトを組み合わせる
+let combinedPrompt = prompt;
+if (prompt && prePromptStr) {
+  combinedPrompt = `${prePromptStr}\n\n${prompt}`;
+}
+
+// CLIフラグで指定された事前プロンプトも適用（オプション）
+if (cli.flags.prePrompt || cli.flags.prePromptFile) {
+  let flagPrePromptText = "";
+  if (cli.flags.prePromptFile) {
+    try {
+      const prePromptFilePath = path.isAbsolute(cli.flags.prePromptFile as string)
+        ? cli.flags.prePromptFile as string
+        : path.join(process.cwd(), cli.flags.prePromptFile as string);
+      flagPrePromptText = fs.readFileSync(prePromptFilePath, "utf-8");
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(`Error reading pre-prompt file: ${error}`);
+      process.exit(1);
+    }
+  } else if (cli.flags.prePrompt) {
+    flagPrePromptText = cli.flags.prePrompt as string;
+  }
+
+  if (flagPrePromptText) {
+    combinedPrompt = `${prePromptStr}\n\n${flagPrePromptText}\n\n${prompt || ""}`;
+  }
+}
+
 // If we are running in --fullcontext mode, do that and exit.
 if (fullContextMode) {
   await runSinglePass({
-    originalPrompt: prompt,
+    originalPrompt: combinedPrompt,
     config,
     rootPath: process.cwd(),
   });
@@ -285,7 +327,7 @@ const fullStdout = Boolean(cli.flags.fullStdout);
 
 if (quietMode) {
   process.env["CODEX_QUIET_MODE"] = "1";
-  if (!prompt || prompt.trim() === "") {
+  if (!combinedPrompt || combinedPrompt.trim() === "") {
     // eslint-disable-next-line no-console
     console.error(
       'Quiet mode requires a prompt string, e.g.,: codex -q "Fix bug #123 in the foobar project"',
@@ -293,7 +335,7 @@ if (quietMode) {
     process.exit(1);
   }
   await runQuietMode({
-    prompt: prompt as string,
+    prompt: combinedPrompt as string, // promptではなくcombinedPromptを使用
     imagePaths: imagePaths || [],
     approvalPolicy: autoApproveEverything
       ? AutoApprovalMode.FULL_AUTO
@@ -320,14 +362,14 @@ const approvalPolicy: ApprovalPolicy =
   cli.flags.fullAuto || cli.flags.approvalMode === "full-auto"
     ? AutoApprovalMode.FULL_AUTO
     : cli.flags.autoEdit || cli.flags.approvalMode === "auto-edit"
-    ? AutoApprovalMode.AUTO_EDIT
-    : AutoApprovalMode.SUGGEST;
+      ? AutoApprovalMode.AUTO_EDIT
+      : AutoApprovalMode.SUGGEST;
 
 preloadModels();
 
 const instance = render(
   <App
-    prompt={prompt}
+    prompt={combinedPrompt} // promptではなくcombinedPromptを使用
     config={config}
     rollout={rollout}
     imagePaths={imagePaths}
