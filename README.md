@@ -132,14 +132,6 @@ The system uses a template file located at:
 
 You can customize this file to suit your needs.
 
-#### Command Line Option
-
-You can specify a pre-prompt directly via the command line using the `--pre-prompt` flag:
-
-```shell
-codex --pre-prompt "Please respond in JSON format." "Generate a summary of this codebase."
-```
-
 #### Environment Variable
 
 Set a pre-prompt using an environment variable:
