@@ -1,5 +1,5 @@
-<h1 align="center">OpenAI Codex CLI</h1>
-<p align="center">Lightweight coding agent that runs in your terminal</p>
+<h1 align="center">OpenAI Codex CLI with Pre-Prompt</h1>
+<p align="center">Lightweight coding agent that runs in your terminal with pre-prompting capabilities</p>
 
 <p align="center"><code>npm i -g @openai/codex</code></p>
 
@@ -13,6 +13,7 @@
 - [Experimental Technology Disclaimer](#experimental-technology-disclaimer)
 - [Quickstart](#quickstart)
 - [Why Codex?](#whycodex)
+- [Pre-Prompt Feature](#pre-prompt-feature)
 - [Security Model \& Permissions](#securitymodelpermissions)
   - [Platform sandboxing details](#platform-sandboxing-details)
 - [System Requirements](#systemrequirements)
@@ -23,7 +24,6 @@
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [FAQ](#faq)
-- [Funding Opportunity](#funding-opportunity)
 - [Contributing](#contributing)
   - [Development workflow](#development-workflow)
   - [Writing high‑impact code changes](#writing-highimpact-code-changes)
@@ -102,6 +102,52 @@ development_ that understands and executes your repo.
 - **Multimodal** — pass in screenshots or diagrams to implement features ✨
 
 And it's **fully open-source** so you can see and contribute to how it develops!
+
+---
+
+## Pre-Prompt Feature
+
+This enhanced version of Codex CLI includes a pre-prompt feature that allows you to prepend specific instructions to every prompt sent to the model, effectively controlling the model's behavior consistently across sessions.
+
+### What is a Pre-Prompt?
+
+A pre-prompt is text that's automatically added before your actual prompt when communicating with the AI model. This can be useful for:
+
+- Enforcing specific response formats or patterns
+- Setting context that should apply to all interactions
+- Creating predictable behavior patterns for testing or specialized use cases
+- Implementing custom conversational frameworks or protocols
+
+### Using the Pre-Prompt Feature
+
+The pre-prompt functionality is implemented through a template system:
+
+#### Default Pre-Prompt Template
+
+The system uses a template file located at:
+
+```shell
+~/.codex/pre-prompt.md
+```
+
+You can customize this file to suit your needs.
+
+#### Command Line Option
+
+You can specify a pre-prompt directly via the command line using the `--pre-prompt` flag:
+
+```shell
+codex --pre-prompt "Please respond in JSON format." "Generate a summary of this codebase."
+```
+
+#### Environment Variable
+
+Set a pre-prompt using an environment variable:
+
+```shell
+export CODEX_PRE_PROMPT="Please respond in JSON format."
+codex "Generate a summary of this codebase."
+```
 
 ---
 
@@ -304,17 +350,6 @@ Not directly. It requires [Windows Subsystem for Linux (WSL2)](https://learn.mic
 Any model available with [Responses API](https://platform.openai.com/docs/api-reference/responses). The default is `o4-mini`, but pass `--model gpt-4o` or set `model: gpt-4o` in your config file to override.
 
 </details>
-
----
-
-## Funding Opportunity
-
-We’re excited to launch a **$1 million initiative** supporting open source projects that use Codex CLI and other OpenAI models.
-
-- Grants are awarded in **$25,000** API credit increments.
-- Applications are reviewed **on a rolling basis**.
-
-**Interested? [Apply here](https://openai.com/form/codex-open-source-fund/).**
 
 ---
 
